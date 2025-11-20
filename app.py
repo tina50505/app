@@ -257,7 +257,113 @@ What do you do?
         st.session_state.step = "summary"
         st.rerun()
 
+# -------------------- SCENARIO 4 --------------------
 
+def page_s4():
+    st.title("Scenario 4 – Unexpected Bug Crisis")
+    show_stats()
+    show_timer()
+    st.write("---")
+
+    st.write("""
+A critical bug appears during testing. It could delay the demo.
+
+What do you do?
+""")
+
+    choice = st.radio("Your choice:", [
+        "Pull an all-nighter to fix it before demo.",
+        "Delay the demo and fix it properly.",
+        "Patch it quickly and hope for the best."
+    ])
+
+    disabled = timer_expired()
+
+    if st.button("Confirm Scenario 4 choice", disabled=disabled):
+        if disabled:
+            st.error("Too late! Timer expired.")
+        elif choice == "Pull an all-nighter to fix it before demo.":
+            apply_deltas("Scenario 4", choice, -2, 0, 2)
+        elif choice == "Delay the demo and fix it properly.":
+            apply_deltas("Scenario 4", choice, 1, -1, -1)
+        else:
+            apply_deltas("Scenario 4", choice, -1, 0, 1)
+
+        start_timer()
+        st.session_state.step = "s5"
+        st.rerun()
+
+# -------------------- SCENARIO 5 --------------------
+
+def page_s5():
+    st.title("Scenario 5 – Team Motivation Dip")
+    show_stats()
+    show_timer()
+    st.write("---")
+
+    st.write("""
+Half of the team feels demotivated after several stressful weeks.
+
+How do you respond?
+""")
+
+    choice = st.radio("Your choice:", [
+        "Organize a team-building activity.",
+        "Offer a small bonus to encourage them.",
+        "Ignore it and push through the deadline."
+    ])
+
+    disabled = timer_expired()
+
+    if st.button("Confirm Scenario 5 choice", disabled=disabled):
+        if disabled:
+            st.error("Too late! Timer expired.")
+        elif choice == "Organize a team-building activity.":
+            apply_deltas("Scenario 5", choice, 2, -1, 0)
+        elif choice == "Offer a small bonus to encourage them.":
+            apply_deltas("Scenario 5", choice, 1, -2, 1)
+        else:
+            apply_deltas("Scenario 5", choice, -2, 0, 0)
+
+        start_timer()
+        st.session_state.step = "s6"
+        st.rerun()
+
+# -------------------- SCENARIO 6 --------------------
+
+def page_s6():
+    st.title("Scenario 6 – Investor Pressure")
+    show_stats()
+    show_timer()
+    st.write("---")
+
+    st.write("""
+Your main investor pressures you to commit to ambitious new features,
+threatening to reduce funding if you refuse.
+
+How do you react?
+""")
+
+    choice = st.radio("Your choice:", [
+        "Agree to the new roadmap to secure funding.",
+        "Push back and protect realistic planning.",
+        "Negotiate a smaller feature set."
+    ])
+
+    disabled = timer_expired()
+
+    if st.button("Confirm Scenario 6 choice", disabled=disabled):
+        if disabled:
+            st.error("Too late! Timer expired.")
+        elif choice == "Agree to the new roadmap to secure funding.":
+            apply_deltas("Scenario 6", choice, -2, 2, 1)
+        elif choice == "Push back and protect realistic planning.":
+            apply_deltas("Scenario 6", choice, 1, 0, -2)
+        else:
+            apply_deltas("Scenario 6", choice, 0, 1, 1)
+
+        st.session_state.step = "summary"
+        st.rerun()
 
 # -------------------- SUMMARY --------------------
 
@@ -423,5 +529,12 @@ elif step == "s2":
     page_s2()
 elif step == "s3":
     page_s3()
+elif step == "s4":
+    page_s4()
+elif step == "s5":
+    page_s5()
+elif step == "s6":
+    page_s6()
 elif step == "summary":
     page_summary()
+
