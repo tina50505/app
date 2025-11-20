@@ -266,18 +266,135 @@ def page_summary():
     show_stats()
     st.write("---")
 
-    total = st.session_state.morale + st.session_state.budget + st.session_state.reputation
+    morale = st.session_state.morale
+    budget = st.session_state.budget
+    reputation = st.session_state.reputation
+    total = morale + budget + reputation
+    role = st.session_state.get("role", "Team Member")
 
+    # Overall ending text
     if total >= 18:
         ending = "High cohesion & sustainable success 🎉"
+        overall = (
+            "Your team managed to balance morale, money, and reputation. "
+            "People would probably work with you again – and the client is happy."
+        )
     elif total >= 12:
         ending = "Mixed outcome – some wins, some scars 😐"
+        overall = (
+            "You got through the project, but there were trade-offs. "
+            "Some relationships or expectations may need repair before the next round."
+        )
     else:
         ending = "Low cohesion – fragile success or quiet failure 😬"
+        overall = (
+            "Even if something was delivered, the way you worked together "
+            "was not really sustainable. In a real startup, people might quit "
+            "or clients might not return."
+        )
 
     st.header(ending)
+    st.write(overall)
+    st.write("---")
 
-    st.write("### Your decisions:")
+    # --- Detailed feedback based on stats ---
+
+    strengths = []
+    improvements = []
+
+    # Morale feedback
+    if morale >= 7:
+        strengths.append(
+            "You protected **team morale** – people were likely to stay motivated and engaged."
+        )
+    elif morale <= 4:
+        improvements.append(
+            "Watch out for **morale** – some of your choices risked overloading or frustrating the team."
+        )
+    else:
+        improvements.append(
+            "Team morale ended up in a **medium zone** – consider where small changes "
+            "could have reduced stress without breaking the project."
+        )
+
+    # Budget feedback
+    if budget >= 7:
+        strengths.append(
+            "You kept the **budget under control**, which makes the project more sustainable long-term."
+        )
+    elif budget <= 4:
+        improvements.append(
+            "Your **budget** is under pressure – in reality this might limit future options or cause hard cuts."
+        )
+    else:
+        improvements.append(
+            "The **budget** is borderline – next time you might define trade-offs earlier "
+            "so surprises hurt less."
+        )
+
+    # Reputation feedback
+    if reputation >= 7:
+        strengths.append(
+            "You managed to build strong **client reputation**, which helps with trust and future projects."
+        )
+    elif reputation <= 4:
+        improvements.append(
+            "Your **client reputation** took some hits – think about how to communicate constraints "
+            "without losing too much trust."
+        )
+    else:
+        improvements.append(
+            "Client **reputation** ended up okay but not amazing – clearer expectation setting early on "
+            "could improve this."
+        )
+
+    # Role-based feedback
+    if role == "Finance Lead":
+        if budget >= max(morale, reputation):
+            strengths.append(
+                "As **Finance Lead**, you stayed true to your role by prioritising financial stability."
+            )
+        else:
+            improvements.append(
+                "As **Finance Lead**, you might want to keep a closer eye on the budget next time."
+            )
+    elif role == "Marketing Manager":
+        if reputation >= max(morale, budget):
+            strengths.append(
+                "As **Marketing Manager**, you succeeded in keeping the client/front-facing side strong."
+            )
+        else:
+            improvements.append(
+                "As **Marketing Manager**, you could push a bit more on communication and client perception."
+            )
+    elif role == "Tech Lead":
+        if morale >= max(budget, reputation):
+            strengths.append(
+                "As **Tech Lead**, you did well in protecting the team's capacity and avoiding burnout."
+            )
+        else:
+            improvements.append(
+                "As **Tech Lead**, you may want to watch for signs of overload or unrealistic plans earlier."
+            )
+
+    # Show strengths
+    st.subheader("✅ What you did well")
+    if strengths:
+        for s in strengths:
+            st.markdown(f"- {s}")
+    else:
+        st.write("No clear strengths were identified – this run was more of a warning scenario. 🙂")
+
+    # Show improvements
+    st.subheader("🛠 What you could improve next time")
+    if improvements:
+        for imp in improvements:
+            st.markdown(f"- {imp}")
+    else:
+        st.write("You balanced everything very well – next time you could experiment with riskier choices.")
+
+    st.write("---")
+    st.write("### Your decisions during the game")
     for h in st.session_state.history:
         st.markdown(
             f"- **{h['scenario']}** – *{h['choice']}*  \n"
@@ -290,7 +407,6 @@ def page_summary():
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
-
 
 
 # -------------------- ROUTER --------------------
