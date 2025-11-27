@@ -1,37 +1,21 @@
 import streamlit as st
-import time
+import random
 
 # -------------------- CONFIG --------------------
-
-TIMER_SEC = 45   # seconds allowed per scenario
 
 st.set_page_config(page_title="Startup Teamwork Quest", page_icon="🚀")
 
 if "initialized" not in st.session_state:
     st.session_state.initialized = True
-    st.session_state.step = "intro"    # NEW: introduction page
+    st.session_state.step = "intro"    # "intro", "role", "s1"..."s5", "summary"
     st.session_state.role = None
     st.session_state.morale = 5
     st.session_state.budget = 5
     st.session_state.reputation = 5
     st.session_state.history = []
-    st.session_state.start_time = None
 
 
 # -------------------- HELPERS --------------------
-
-def start_timer():
-    st.session_state.start_time = time.time()
-
-def time_left():
-    if st.session_state.start_time is None:
-        return TIMER_SEC
-    elapsed = time.time() - st.session_state.start_time
-    remaining = TIMER_SEC - int(elapsed)
-    return max(0, remaining)
-
-def timer_expired():
-    return time_left() <= 0
 
 def apply_deltas(label, choice_text, dm, db, dr):
     st.session_state.morale += dm
@@ -53,6 +37,37 @@ def show_stats():
     c3.metric("Client Reputation", st.session_state.reputation)
 
 
+def show_role_badge():
+    """Show role + points in a compact HUD in the top-right corner."""
+    role = st.session_state.get("role")
+    if not role:
+        return
+
+    morale = st.session_state.morale
+    budget = st.session_state.budget
+    reputation = st.session_state.reputation
+    total = morale + budget + reputation
+
+    _, col = st.columns([3, 1])
+    with col:
+        st.markdown(
+            f"""
+            <div style="
+                text-align:right;
+                background-color:#11111122;
+                padding:0.6rem 0.8rem;
+                border-radius:0.6rem;
+                font-size:0.9rem;
+                line-height:1.4;
+            ">
+            <b>{role}</b><br>
+            💙 {morale} &nbsp;&nbsp; 💰 {budget} &nbsp;&nbsp; ⭐ {reputation}<br>
+            <b>Total: {total}</b>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
 
 # -------------------- INTRO PAGE --------------------
 
@@ -61,29 +76,24 @@ def page_intro():
     st.subheader("A teamwork & decision-making simulation")
 
     st.write("""
-Welcome to **Startup Teamwork Quest** – a fast-paced scenario game where 
-your team must handle pressure, limited time, and unexpected events.
+Welcome to **Startup Teamwork Quest** – a scenario game where 
+your team has to juggle pressure, limited resources, and unexpected events.
 
 ### 🎯 Goal of the Game
 Make decisions that balance:
-- Team Morale  
-- Budget  
-- Client Reputation  
-
-### ⏳ Time Pressure
-Each scenario has a **45-second timer**.  
-If time runs out → your team **loses the ability to choose** and the scenario auto-fails.
+- **Team Morale**  
+- **Budget**  
+- **Client Reputation**  
 
 ### 👥 Roles
-You will be randomly assigned a role with its own priorities.
+You will be **assigned a role** with its own priorities  
+(even if the others don’t know them 😉).
 
-### 🧠 Instructions
-1. Read the scenario  
-2. Discuss briefly (optional)  
-3. Choose fast  
-4. Live with the consequences 😈  
-
-Ready?
+### 🧠 How it works
+1. Get your role  
+2. Go through several scenarios  
+3. Make choices together  
+4. See how your decisions affected the project in the final summary
 """)
 
     if st.button("Assign my role ➜"):
@@ -91,12 +101,10 @@ Ready?
         st.rerun()
 
 
-
 # -------------------- ROLE ASSIGNMENT --------------------
 
-import random
-
 def page_role():
+    show_role_badge()
     st.title("🎲 Your Role")
 
     roles = {
@@ -123,29 +131,23 @@ def page_role():
     st.success(f"Your role is: **{role}**")
     st.info(f"**Focus:** {info['focus']}\n\n**Secret preference:** {info['secret']}")
 
+    st.write(
+        "You’ll keep this role for the whole game. "
+        "Try to make decisions that fit your priorities, "
+        "but remember you’re still part of a team."
+    )
+
     if st.button("Start Scenario 1 ➜"):
-        start_timer()
         st.session_state.step = "s1"
         st.rerun()
-
-
-
-# -------------------- SCENARIO TEMPLATE --------------------
-
-def show_timer():
-    remaining = time_left()
-    if remaining == 0:
-        st.error("⏳ Time's up! You did not choose in time.")
-    else:
-        st.warning(f"⏰ Time left: **{remaining} seconds**")
 
 
 # -------------------- SCENARIO 1 --------------------
 
 def page_s1():
+    show_role_badge()
     st.title("Scenario 1 – First Big Decision")
     show_stats()
-    show_timer()
     st.write("---")
 
     st.write("""
@@ -163,70 +165,58 @@ Do you:
         "Try to do both at the same time.",
     ])
 
-    disabled = timer_expired()
-
-    if st.button("Confirm Scenario 1 choice", disabled=disabled):
-        if disabled:
-            st.error("Too late! Timer expired.")
-        elif choice == "Focus on a simple working prototype.":
+    if st.button("Confirm Scenario 1 choice"):
+        if choice == "Focus on a simple working prototype.":
             apply_deltas("Scenario 1", choice, 1, -1, 1)
         elif choice == "Focus on flashy marketing material.":
             apply_deltas("Scenario 1", choice, -1, -1, 2)
         else:
             apply_deltas("Scenario 1", choice, -2, -2, 2)
 
-        start_timer()
         st.session_state.step = "s2"
         st.rerun()
-
 
 
 # -------------------- SCENARIO 2 --------------------
 
 def page_s2():
+    show_role_badge()
     st.title("Scenario 2 – Team Conflict")
     show_stats()
-    show_timer()
     st.write("---")
 
     st.write("""
-Two team members disagree strongly:
-- Developer: The timeline is impossible  
-- Marketing: Promised features must ship  
+Two key team members disagree strongly:
+- **Developer**: “The timeline is impossible.”  
+- **Marketing**: “We already promised these features.”  
 
-Tension is rising.
+Tension is rising and the rest of the team is watching how you handle it.
 """)
 
     choice = st.radio("Make a choice:", [
         "Hold a mediation meeting and renegotiate scope.",
         "Let them resolve it on their own.",
-        "Reassign one to another task.",
+        "Reassign one of them to another task.",
     ])
 
-    disabled = timer_expired()
-
-    if st.button("Confirm Scenario 2 choice", disabled=disabled):
-        if disabled:
-            st.error("Too late! Timer expired.")
-        elif choice == "Hold a mediation meeting and renegotiate scope.":
+    if st.button("Confirm Scenario 2 choice"):
+        if choice == "Hold a mediation meeting and renegotiate scope.":
             apply_deltas("Scenario 2", choice, 2, -1, 0)
         elif choice == "Let them resolve it on their own.":
             apply_deltas("Scenario 2", choice, -2, 0, -1)
         else:
             apply_deltas("Scenario 2", choice, -1, 0, 1)
 
-        start_timer()
         st.session_state.step = "s3"
         st.rerun()
-
 
 
 # -------------------- SCENARIO 3 --------------------
 
 def page_s3():
+    show_role_badge()
     st.title("Scenario 3 – Last-Minute Client Request")
     show_stats()
-    show_timer()
     st.write("---")
 
     st.write("""
@@ -242,26 +232,93 @@ What do you do?
         "Accept but charge extra and reduce something else.",
     ])
 
-    disabled = timer_expired()
-
-    if st.button("Confirm Scenario 3 choice", disabled=disabled):
-        if disabled:
-            st.error("Too late! Timer expired.")
-        elif choice == "Accept the request and squeeze it in.":
+    if st.button("Confirm Scenario 3 choice"):
+        if choice == "Accept the request and squeeze it in.":
             apply_deltas("Scenario 3", choice, -2, -1, 2)
         elif choice == "Push back and protect the team.":
             apply_deltas("Scenario 3", choice, 1, 0, -1)
         else:
             apply_deltas("Scenario 3", choice, -1, 2, 1)
 
-        st.session_state.step = "summary"
+        st.session_state.step = "s4"
         st.rerun()
 
+
+# -------------------- SCENARIO 4 --------------------
+
+def page_s4():
+    show_role_badge()
+    st.title("Scenario 4 – Pivot or Commit?")
+    show_stats()
+    st.write("---")
+
+    st.write("""
+After some user tests, you discover that people use your app for a 
+**slightly different purpose** than planned.
+
+An investor suggests you **pivot** the product to match this new use case, 
+but that means throwing away some of the work you already did.
+
+What do you decide?
+""")
+
+    choice = st.radio("Your choice:", [
+        "Commit to the original plan – no pivot.",
+        "Full pivot to the new use case.",
+        "Small pivot: keep core, adjust features gradually.",
+    ])
+
+    if st.button("Confirm Scenario 4 choice"):
+        if choice == "Commit to the original plan – no pivot.":
+            apply_deltas("Scenario 4", choice, 0, 1, -1)
+        elif choice == "Full pivot to the new use case.":
+            apply_deltas("Scenario 4", choice, -1, -2, 2)
+        else:
+            apply_deltas("Scenario 4", choice, 1, -1, 1)
+
+        st.session_state.step = "s5"
+        st.rerun()
+
+
+# -------------------- SCENARIO 5 --------------------
+
+def page_s5():
+    show_role_badge()
+    st.title("Scenario 5 – Burnout or Scale Up?")
+    show_stats()
+    st.write("---")
+
+    st.write("""
+The app is gaining traction. The client is happy and more requests are coming in.
+
+However, the team is clearly tired. People are working late and small bugs 
+keep slipping through.
+
+You have the option to:
+""")
+
+    choice = st.radio("Your choice:", [
+        "Push the current team harder to keep momentum.",
+        "Slow down delivery to let the team recover.",
+        "Hire freelancers/consultants and accept higher costs.",
+    ])
+
+    if st.button("Confirm Scenario 5 choice"):
+        if choice == "Push the current team harder to keep momentum.":
+            apply_deltas("Scenario 5", choice, -2, 0, 2)
+        elif choice == "Slow down delivery to let the team recover.":
+            apply_deltas("Scenario 5", choice, 2, 0, -1)
+        else:
+            apply_deltas("Scenario 5", choice, 0, -2, 1)
+
+        st.session_state.step = "summary"
+        st.rerun()
 
 
 # -------------------- SUMMARY --------------------
 
 def page_summary():
+    show_role_badge()
     st.title("📊 Final Project Outcome")
     show_stats()
     st.write("---")
@@ -297,8 +354,6 @@ def page_summary():
     st.write(overall)
     st.write("---")
 
-    # --- Detailed feedback based on stats ---
-
     strengths = []
     improvements = []
 
@@ -313,8 +368,7 @@ def page_summary():
         )
     else:
         improvements.append(
-            "Team morale ended up in a **medium zone** – consider where small changes "
-            "could have reduced stress without breaking the project."
+            "Team morale ended up in a **medium zone** – small tweaks could have reduced stress."
         )
 
     # Budget feedback
@@ -328,8 +382,7 @@ def page_summary():
         )
     else:
         improvements.append(
-            "The **budget** is borderline – next time you might define trade-offs earlier "
-            "so surprises hurt less."
+            "The **budget** is borderline – next time you might define trade-offs earlier."
         )
 
     # Reputation feedback
@@ -344,8 +397,7 @@ def page_summary():
         )
     else:
         improvements.append(
-            "Client **reputation** ended up okay but not amazing – clearer expectation setting early on "
-            "could improve this."
+            "Client **reputation** is okay but not amazing – clearer expectations early on could help."
         )
 
     # Role-based feedback
@@ -361,7 +413,7 @@ def page_summary():
     elif role == "Marketing Manager":
         if reputation >= max(morale, budget):
             strengths.append(
-                "As **Marketing Manager**, you succeeded in keeping the client/front-facing side strong."
+                "As **Marketing Manager**, you kept the client/front-facing side strong."
             )
         else:
             improvements.append(
@@ -423,5 +475,9 @@ elif step == "s2":
     page_s2()
 elif step == "s3":
     page_s3()
+elif step == "s4":
+    page_s4()
+elif step == "s5":
+    page_s5()
 elif step == "summary":
     page_summary()
