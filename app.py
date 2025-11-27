@@ -13,6 +13,7 @@ if "initialized" not in st.session_state:
     st.session_state.reputation = 5
     st.session_state.history = []
     st.session_state.start_time = None
+    st.session_state.last_rerun = time.time()
 
 # -------------------- HELPERS --------------------
 def apply_deltas(label, choice_text, dm, db, dr):
@@ -69,6 +70,9 @@ def show_timer(time_left_placeholder, start_time, scenario_duration=40):
         return False
     mins, secs = divmod(int(time_left), 60)
     time_left_placeholder.markdown(f"**Time left: {mins:02d}:{secs:02d}**")
+    if time.time() - st.session_state.last_rerun > 1.0:
+        st.session_state.last_rerun = time.time()
+        st.experimental_rerun()
     return True
 
 # -------------------- INTRO PAGE --------------------
@@ -128,6 +132,7 @@ def page_role():
     if st.button("Start Scenario 1 ➜"):
         st.session_state.step = "s1"
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
 # -------------------- SCENARIO 1 --------------------
@@ -140,6 +145,7 @@ def page_s1():
     time_left_placeholder = st.empty()
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
 
     time_up = not show_timer(time_left_placeholder, st.session_state.start_time)
 
@@ -147,6 +153,8 @@ def page_s1():
         st.warning("Time's up! Moving to the next scenario.")
         apply_deltas("Scenario 1", "Time's up! No decision made.", -1, -1, -1)
         st.session_state.step = "s2"
+        st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
     st.write("""
@@ -170,6 +178,7 @@ Do you:
             apply_deltas("Scenario 1", choice, -2, -2, 2)
         st.session_state.step = "s2"
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
 # -------------------- SCENARIO 2 --------------------
@@ -182,6 +191,7 @@ def page_s2():
     time_left_placeholder = st.empty()
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
 
     time_up = not show_timer(time_left_placeholder, st.session_state.start_time)
 
@@ -189,6 +199,8 @@ def page_s2():
         st.warning("Time's up! Moving to the next scenario.")
         apply_deltas("Scenario 2", "Time's up! No decision made.", -1, -1, -1)
         st.session_state.step = "s3"
+        st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
     st.write("""
@@ -211,6 +223,7 @@ Tension is rising and the rest of the team is watching how you handle it.
             apply_deltas("Scenario 2", choice, -1, 0, 1)
         st.session_state.step = "s3"
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
 # -------------------- SCENARIO 3 --------------------
@@ -223,6 +236,7 @@ def page_s3():
     time_left_placeholder = st.empty()
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
 
     time_up = not show_timer(time_left_placeholder, st.session_state.start_time)
 
@@ -230,6 +244,8 @@ def page_s3():
         st.warning("Time's up! Moving to the next scenario.")
         apply_deltas("Scenario 3", "Time's up! No decision made.", -1, -1, -1)
         st.session_state.step = "s4"
+        st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
     st.write("""
@@ -251,6 +267,7 @@ What do you do?
             apply_deltas("Scenario 3", choice, -1, 2, 1)
         st.session_state.step = "s4"
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
 # -------------------- SCENARIO 4 --------------------
@@ -263,6 +280,7 @@ def page_s4():
     time_left_placeholder = st.empty()
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
 
     time_up = not show_timer(time_left_placeholder, st.session_state.start_time)
 
@@ -270,6 +288,8 @@ def page_s4():
         st.warning("Time's up! Moving to the next scenario.")
         apply_deltas("Scenario 4", "Time's up! No decision made.", -1, -1, -1)
         st.session_state.step = "s5"
+        st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
     st.write("""
@@ -293,6 +313,7 @@ What do you decide?
             apply_deltas("Scenario 4", choice, 1, -1, 1)
         st.session_state.step = "s5"
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
         st.rerun()
 
 # -------------------- SCENARIO 5 --------------------
@@ -305,6 +326,7 @@ def page_s5():
     time_left_placeholder = st.empty()
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
+        st.session_state.last_rerun = time.time()
 
     time_up = not show_timer(time_left_placeholder, st.session_state.start_time)
 
